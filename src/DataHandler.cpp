@@ -4,16 +4,19 @@
 #include <algorithm>
 #include <random>
 #include <iostream>
+#include "../include/Neighbor.h"
+
+
 
 template <typename T>
 void DataHandler<T>::read_feature_vector(std::string filename){
     uint32_t header[4]; // 0: magic number, 1: number of images, 2: number of rows, 3: number of columns
-    unsigned char bytes[4];
+    T bytes[4];
 
-    FILE *f = fopen(filename.c_str(), "rb");
-    if(f){
+    std::ifstream  fs(filename, std::ios::binary);
+    if(fs.is_open()){
         for(int i=0;i<4;i++){
-            if(fread(bytes, sizeof(bytes), 1, f)){
+            if(fs.read(reinterpret_cast<char*>(bytes), 4)){
                 header[i] = convert_to_little_endian(bytes);
             }
         }
@@ -23,8 +26,8 @@ void DataHandler<T>::read_feature_vector(std::string filename){
         feature_vector_size = header[2]*header[3];
         for(int i=0;i<header[1];i++){
             std::vector<T> imageBytes (feature_vector_size);
-            if(fread(imageBytes, sizeof(uint8_t), feature_vector_size, f)){
-                data_array.push_back(std::make_shared<Data>(imageBytes, feature_vector_size));
+            if(fs.read(reinterpret_cast<char*>(imageBytes.data()), feature_vector_size)){
+                data_array.push_back(Data<uint8_t>(imageBytes));
             }
             else{
                  std::cout<<"error reading feature vector\n";
@@ -43,12 +46,12 @@ void DataHandler<T>::read_feature_vector(std::string filename){
 template <typename T>
 void DataHandler<T>::read_feature_label(std::string filename){
     uint32_t header[2]; // 0: magic number, 1: number of images
-    unsigned char bytes[4];
+    uint8_t bytes[4];
 
-    FILE *f = fopen(filename.c_str(), "r");
-    if(f){
+    std::ifstream fs(filename, std::ios::binary);
+    if(fs.is_open()){
         for(int i=0;i<2;i++){
-            if(fread(bytes, sizeof(bytes), 1, f)){
+            if(fs.read(reinterpret_cast<char*>(bytes), 4)){
                 header[i] = convert_to_little_endian(bytes);
             }
         }
@@ -56,8 +59,8 @@ void DataHandler<T>::read_feature_label(std::string filename){
                 
         for(int i=0;i<header[1];i++){
             uint8_t label[1];
-            if(fread(label, sizeof(label), 1, f)){
-                data_array[i]->set_label(label[0]);
+            if(fs.read(reinterpret_cast<char*>(label), 1)){
+                data_array[i].set_label(label[0]);
 //                data_array[i]->set_enum_label(class_map->at(label[0]));
             }
             else{
@@ -90,13 +93,13 @@ template <typename T>
  void DataHandler<T>::count_classes(){
     num_classes = 0;
     for(size_t i=0;i<data_array.size();i++){
-        auto iter = class_map.find(data_array[i]->get_label());
+        auto iter = class_map.find(data_array[i].get_label());
         if(iter == class_map.end()){
-            data_array[i]->set_enum_label(num_classes);
-            class_map[ data_array[i]->get_label()] = num_classes;
+            data_array[i].set_enum_label(num_classes);
+            class_map[ data_array[i].get_label()] = num_classes;
             num_classes++;
         }else{
-            data_array[i]->set_enum_label(iter->second);
+            data_array[i].set_enum_label(iter->second);
         }
     }
     std::cout<<"num_classes: "<< num_classes << std::endl;

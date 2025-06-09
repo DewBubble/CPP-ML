@@ -9,6 +9,10 @@
 #include <unordered_map>
 #include <unordered_set>
 #include "../include/Data.h"
+#include "Neighbor.h"
+
+
+
 template <typename T>
 class DataHandler{
     std::vector<Data<T>> data_array;
