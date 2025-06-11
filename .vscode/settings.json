@@ -54,6 +54,7 @@
         "cinttypes": "cpp",
         "typeinfo": "cpp",
         "print": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "set": "cpp"
     }
 }

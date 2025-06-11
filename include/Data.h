@@ -19,7 +19,7 @@ public:
 
     uint8_t get_label() const;
     int get_enum_label() const;
-    std::vector<T>& get_feature_vector()const;
+    const std::vector<T>& get_feature_vector()const;
 };
 
 template <typename T>
@@ -51,7 +51,7 @@ int Data<T>::get_enum_label() const{
 };
 
 template <typename T>
-std::vector<T>& Data<T>::get_feature_vector() const{
+const std::vector<T>& Data<T>::get_feature_vector() const{
     return feature_vector;
 };
 
