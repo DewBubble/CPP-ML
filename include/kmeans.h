@@ -3,11 +3,12 @@
 #include <map>
 #include "Data.h"
 #include <random>
-
+#include <unordered_set>
+#include <functional>
 template <typename T>
 struct Cluster{
     std::vector<double> centroid;
-    std::vector<size_t> pointIndexes; // indices of points in the training data
+    int pointCount = 0; // number of points in the cluster
     std::map<int, int> class_count; // class counts for the points in this cluster
     int most_frequent_class = -1; // most frequent class in the cluster, initialized to -1
    
@@ -16,19 +17,20 @@ struct Cluster{
             centroid.push_back(static_cast<double>(value)); // initialize centroid with feature vector values
         }
        
-        pointIndexes.push_back(size_t);
         class_count[dataPoint.get_label()]=1; // initialize class count with the label of the first point);
+        pointCount = 1; // number of points in the cluster
         most_frequent_class = dataPoint.get_label();
     }
 
     // Add a point to the cluster
     void add_point(const Data<T>& dataPoint, size_t index) {
-        pointIndexes.push_back(index);
+       
         for(size_t i = 0; i < centroid.size(); ++i) {
-            int oldsize = centroid.size();
-            double v = centroid[i]*oldsize; // scale centroid value
-            centroid[i] = (v + static_cast<double>(dataPoint.get_feature_vector()[i])) / (oldsize + 1); // update centroid}
+            double v = centroid[i]*pointCount; // scale centroid value
+            centroid[i] = (v + static_cast<double>(dataPoint.get_feature_vector()[i])) /(pointCount+1); // update centroid
         }
+        pointCount++;
+
         if(class_count.find(dataPoint.get_label()) != class_count.end()) {
             class_count[dataPoint.get_label()]++;
             if(class_count[dataPoint.get_label()] > class_count[most_frequent_class]) {
@@ -45,47 +47,55 @@ struct Cluster{
     }
 
     void reset() {
-        pointIndexes.clear();
         class_count.clear();
-        most_frequent_class = -1;
+        class_count[most_frequent_class] = 1; // reset class count for the most frequent class
+        pointCount=1;
     }
    
 
 };
+ 
+
+static auto createRandomNumberGenerator() {
+    std::random_device rd;
+    std::mt19937 engine{rd()}; // random number generator
+    std::uniform_real_distribution<double> distribution{0.0,1.0}; // uniform distribution for random number generation
+
+    return std::bind(distribution, engine); // generate a random number using the uniform distribution
+}
+static auto ranGenerator {createRandomNumberGenerator()}; // random number generator
 
 template <typename T>
 class kmeans{
     int k; // number of clusters
     std::vector<Cluster<T>> clusters; // vector of clusters
-    std::mt19937 engine(std::random_device{}()); // random number generator
-    std::uniform_real_distribution<double> distribution(0.0,1.0); // uniform distribution for random number generation
-
+     
+  
     public:
     kmeans(int k_value) : k(k_value) {};
     void initialize_clusters(const std::vector<Data<T>>& trainingData);
     void train(const std::vector<Data<T>>& trainingData, const std::vector<Data<T>>& validationData,int maxIterations = 10);
     double validate(const std::vector<Data<T>>& validationData);
-    void test(const std::vector<Data<T>>& testData)
-    double generateRandomNumber() {
-        return distribution(engine); // generate a random number using the uniform distribution
-    }
+    void test(const std::vector<Data<T>>& testData);
+   
 
-    double calculateDistance(const std::vector<double>& a, const std::vector<double>& b) {
+    double calculateDistance(const std::vector<T>& a, const std::vector<double>& b) {
         double sum = 0.0;
         for(size_t i = 0; i < a.size(); ++i) {
             sum += (a[i] - b[i]) * (a[i] - b[i]);
         }
-        return std::sqrt(sum); // return the Euclidean distance
+        return sum; // return the Euclidean distance
     }
+    
 };
 
 template <typename T>
 void kmeans<T>::initialize_clusters(const std::vector<Data<T>>& trainingData) {
     std::unordered_set<size_t> usedIndices; // to keep track of already selected indices
     for(size_t i = 0; i < k; ++i) {
-        size_t randomIndex = -1;
+        size_t randomIndex = static_cast<size_t>(ranGenerator() * trainingData.size());;
         while(usedIndices.find(randomIndex) != usedIndices.end()) {
-            randomIndex = static_cast<size_t>(generateRandomNumber() * trainingData.size());
+            randomIndex = static_cast<size_t>(ranGenerator() * trainingData.size());
         }
         clusters.emplace_back(trainingData[randomIndex], randomIndex); // create a new cluster with a random data point
     }
@@ -96,10 +106,11 @@ void kmeans<T>::train(const std::vector<Data<T>>& trainingData, const std::vecto
     std::unordered_set<size_t> usedIndices; // to keep track of already selected indices
     double lastAccuracy = -1; // variable to store accuracy
     for(int iter = 0;iter<maxIterations; ++iter){
+        std::cout << "Iteration: " << iter <<" ";
         for(size_t i = 0; i < trainingData.size(); ++i) {
-            size_t randomIndex = -1;
+            size_t randomIndex = static_cast<size_t>(ranGenerator() * trainingData.size());
             while(usedIndices.find(randomIndex) != usedIndices.end()) {
-                randomIndex = static_cast<size_t>(generateRandomNumber() * trainingData.size());
+                randomIndex = static_cast<size_t>(ranGenerator() * trainingData.size());
             }
             usedIndices.insert(randomIndex);
             double minDistance = std::numeric_limits<double>::max();
@@ -117,7 +128,7 @@ void kmeans<T>::train(const std::vector<Data<T>>& trainingData, const std::vecto
         }
         double accuracy = validate(validationData); // validate the clusters after each iteration
         if(lastAccuracy > 0){
-            if(std::abs(lastAccuracy- accuracy) < 0.01) {
+            if(std::abs(lastAccuracy- accuracy) < 0.00001) {
                 std::cout << "Stopping early at iteration " << iter << " due to minimal change in accuracy.\n";
                 break; // stop training if accuracy does not change significantly
             }
@@ -150,7 +161,7 @@ double kmeans<T>::validate(const std::vector<Data<T>>& validationData) {
         }
     }
     double accuracy = static_cast<double>(correctClassifications) / validationData.size();
-    std::cout<<"Validation accuracy: " << std::to_string(accuracy * 100) + "%\n");
+    std::cout<<"Validation accuracy: " << std::to_string(accuracy * 100) + "%\n";
     return accuracy;
 
 }
@@ -175,7 +186,7 @@ void kmeans<T>::test(const std::vector<Data<T>>& testData) {
     }
     double accuracy = static_cast<double>(correctClassifications) / testData.size();
     std::cout<<"Test accuracy: " << std::to_string(accuracy * 100) + "%\n";
-    return accuracy;
+
 }
 
 
