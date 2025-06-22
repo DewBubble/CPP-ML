@@ -14,7 +14,7 @@ int main() {
 
     
    
-    kmeans<uint8_t> classifier(10); 
+    kmeans<uint8_t> classifier(100); 
     std::cout << "init kmean classifiler "<< std::endl;
     classifier.initialize_clusters(handler.get_training_data());
     std::cout << "start training kmean classifier "<< std::endl;
