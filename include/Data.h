@@ -12,6 +12,7 @@ class Data{
     std::vector<double> class_vector;
     uint8_t label;
     int enum_label;
+    double epsilon = 1e-8; // Small value to avoid division by zero
 public:
     Data(const std::vector<T>& v);
     Data(std::vector<T>&& v);
@@ -27,7 +28,7 @@ public:
     void normalize_feature_vector(std::vector<double>& mean, std::vector<double>& stddev);
     void setClassVector(int classCount);
     const std::vector<double>& getClassVector() const;
-
+  
 
 };
 
@@ -67,9 +68,14 @@ const std::vector<T>& Data<T>::get_feature_vector() const{
 template <typename T>
 void Data<T>::normalize_feature_vector(std::vector<double>& mean, std::vector<double>& stddev) {
     for (size_t i = 0; i < feature_vector.size(); ++i) {
-        double normalized_value = (static_cast<double>(feature_vector[i]) - mean[i]) / stddev[i];
-        normalized_feature_vector.push_back(normalized_value);
-        normalized_feature_vector_mean.push_back(mean[i]);
+        if(stddev[i] > epsilon) {
+            double normalized_value = (static_cast<double>(feature_vector[i]) - mean[i]) / stddev[i];
+            normalized_feature_vector.push_back(normalized_value);
+            normalized_feature_vector_mean.push_back(mean[i]);
+        } else {
+            normalized_feature_vector.push_back(0.0);
+            normalized_feature_vector_mean.push_back(mean[i]);
+        }
     }
 };
 

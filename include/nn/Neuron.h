@@ -3,8 +3,8 @@
 #include "../Utility.h"
 class Neuron {
     std::vector<double> weights;
-    double output;
-    double delta;
+    double output=0;
+    double delta=0;
 
     std::function<double()> gen = createRandomNumberGenerator(0.0, 1.0);
 

@@ -41,6 +41,7 @@ Network<T>::Network(std::vector<int> specs, int input_size, int numClasses, doub
     }
     // Output layer
     layers.emplace_back(specs[specs.size() - 1], numClasses);
+
 }
 
 template <typename T>

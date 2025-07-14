@@ -125,7 +125,7 @@ void DataHandler<T>::read_feature_label(std::string filename){
                 header[i] = convert_to_little_endian(bytes);
             }
         }
-       std::cout<<"done reading label header";
+       std::cout<<"done reading label header\n";
                 
         for(int i=0;i<header[1];i++){
             uint8_t label[1];
