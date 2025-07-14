@@ -2,16 +2,17 @@
 #include <vector>
 #include <map>
 #include "Data.h"
-#include <random>
+#include "Utility.h"
 #include <unordered_set>
-#include <functional>
+
 template <typename T>
 struct Cluster{
     std::vector<double> centroid;
     int pointCount = 0; // number of points in the cluster
     std::map<int, int> class_count; // class counts for the points in this cluster
     int most_frequent_class = -1; // most frequent class in the cluster, initialized to -1
-   
+
+
     Cluster(const Data<T>& dataPoint, size_t index) {
         for(T value : dataPoint.get_feature_vector()) {
             centroid.push_back(static_cast<double>(value)); // initialize centroid with feature vector values
@@ -56,15 +57,6 @@ struct Cluster{
 };
  
 
-static auto createRandomNumberGenerator() {
-    std::random_device rd;
-    std::mt19937 engine{rd()}; // random number generator
-    std::uniform_real_distribution<double> distribution{0.0,1.0}; // uniform distribution for random number generation
-
-    return std::bind(distribution, engine); // generate a random number using the uniform distribution
-}
-static auto ranGenerator {createRandomNumberGenerator()}; // random number generator
-
 template <typename T>
 class kmeans{
     int k; // number of clusters
@@ -93,9 +85,9 @@ template <typename T>
 void kmeans<T>::initialize_clusters(const std::vector<Data<T>>& trainingData) {
     std::unordered_set<size_t> usedIndices; // to keep track of already selected indices
     for(size_t i = 0; i < k; ++i) {
-        size_t randomIndex = static_cast<size_t>(ranGenerator() * trainingData.size());;
+        size_t randomIndex = static_cast<size_t>(gen0To1() * trainingData.size());
         while(usedIndices.find(randomIndex) != usedIndices.end()) {
-            randomIndex = static_cast<size_t>(ranGenerator() * trainingData.size());
+            randomIndex = static_cast<size_t>(gen0To1() * trainingData.size());
         }
         clusters.emplace_back(trainingData[randomIndex], randomIndex); // create a new cluster with a random data point
     }
@@ -108,9 +100,9 @@ void kmeans<T>::train(const std::vector<Data<T>>& trainingData, const std::vecto
     for(int iter = 0;iter<maxIterations; ++iter){
         std::cout << "Iteration: " << iter <<" ";
         for(size_t i = 0; i < trainingData.size(); ++i) {
-            size_t randomIndex = static_cast<size_t>(ranGenerator() * trainingData.size());
+            size_t randomIndex = static_cast<size_t>(gen0To1() * trainingData.size());
             while(usedIndices.find(randomIndex) != usedIndices.end()) {
-                randomIndex = static_cast<size_t>(ranGenerator() * trainingData.size());
+                randomIndex = static_cast<size_t>(gen0To1* trainingData.size());
             }
             usedIndices.insert(randomIndex);
             double minDistance = std::numeric_limits<double>::max();

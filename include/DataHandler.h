@@ -45,9 +45,39 @@ class DataHandler{
     const std::vector<Data<T>>& get_training_data() const;
     const std::vector<Data<T>>& get_test_data() const;
     const std::vector<Data<T>>& get_validation_data() const;
+    void normalize_feature_vector();
+    int get_num_classes() const {
+        return num_classes;
+    }
+
 };
 
+template <typename T>
+void DataHandler<T>::normalize_feature_vector() {
 
+    std::vector<double> mean;
+    std::vector<double> stddev;
+    int dimensions = data_array[0].get_feature_vector().size();
+    mean.resize(dimensions, 0.0);
+    stddev.resize(dimensions, 0.0);
+    for (Data<T>& data: data_array) {
+        for(int i=0;i<dimensions; ++i) {
+            mean[i] +=data.get_feature_vector()[i];
+            stddev[i] +=data.get_feature_vector()[i] * data.get_feature_vector()[i];
+        }
+    }
+    for(int i=0; i < mean.size(); ++i) {
+        mean[i] /= data_array.size();
+        stddev[i] = sqrt(stddev[i] / data_array.size() - mean[i] * mean[i]);
+    }
+
+
+
+    for(auto& data : data_array) {
+        data.normalize_feature_vector(mean, stddev);
+        data.setClassVector(num_classes);
+    }
+};
 template <typename T>
 void DataHandler<T>::read_feature_vector(std::string filename){
     uint32_t header[4]; // 0: magic number, 1: number of images, 2: number of rows, 3: number of columns

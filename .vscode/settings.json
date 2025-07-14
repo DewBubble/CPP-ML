@@ -55,6 +55,7 @@
         "typeinfo": "cpp",
         "print": "cpp",
         "iostream": "cpp",
-        "set": "cpp"
+        "set": "cpp",
+        "map": "cpp"
     }
 }
