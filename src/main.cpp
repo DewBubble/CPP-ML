@@ -7,9 +7,10 @@ int main() {
     DataHandler<uint8_t> handler;
     handler.read_feature_vector("../train-images.idx3-ubyte");
     handler.read_feature_label("../train-labels.idx1-ubyte");
+    handler.count_classes();
     handler.normalize_feature_vector();
     handler.split_data();
-    handler.count_classes();
+    
     
 
 
