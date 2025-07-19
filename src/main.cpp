@@ -5,8 +5,8 @@
 
 int main() {
     DataHandler<uint8_t> handler;
-    handler.read_feature_vector("../train-images.idx3-ubyte");
-    handler.read_feature_label("../train-labels.idx1-ubyte");
+    handler.read_feature_vector("C:/CppProjects/ETL/train-images.idx3-ubyte");
+    handler.read_feature_label("C:/CppProjects/ETL/train-labels.idx1-ubyte");
     handler.count_classes();
     handler.normalize_feature_vector();
     handler.split_data();
@@ -25,7 +25,7 @@ int main() {
     std::cout << "start training nn classifier "<< std::endl;
     nn.train(50, handler.get_training_data());
     std::cout << "start testing nn classifier "<< std::endl;
-    nn.test(handler.get_test_data());
-    // std::cout << "Test accuracy: " << rate * 100 << "%" << std::endl;
+    double rate = nn.test(handler.get_test_data());
+    std::cout << "Test accuracy: " << rate * 100 << "%" << std::endl;
     return 0;
 }

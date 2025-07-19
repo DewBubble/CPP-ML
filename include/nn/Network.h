@@ -50,7 +50,6 @@ double Network<T>::activate(const std::vector<double>& neuronWeights, const std:
     for (size_t i = 0; i < neuronWeights.size() - 1; ++i) {
         sum += neuronWeights[i] * inputsPrevLayer[i];
     }
-    sum += neuronWeights.back(); // Bias term   return sum;
     return sum;
 }
 
@@ -72,10 +71,11 @@ std::vector<double> Network<T>::forward_propagate(const Data<T>& data){
     for(size_t i=0; i<layers.size();i++){
         Layer& layer = layers[i];
        
-        for(const Neuron& n:layer.get_neurons()){
+        for(Neuron& n:layer.get_neurons()){
             double activation = activate(n.getWeights(), inputs);
             double output = transfer(activation);
             outputs.push_back(output);
+            n.setOutput(output); // Set the output of the neuron
         }
         inputs = outputs; // Pass the outputs as the next layer's inputs
         outputs.clear(); // Clear the output vector for the next layer
